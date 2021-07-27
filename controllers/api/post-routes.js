@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { Post, User, Vote, Comment } = require('../../models');
+const { Post, User, Comment, Vote} = require('../../models');
 const sequelize = require('../../config/connection');
 
 // get all users
@@ -67,6 +67,7 @@ Post.findOne({
 });
 
 router.post('/', (req, res) => {
+  if (req.session) {
 // expects {title: 'Taskmaster goes public!', post_url: 'https://taskmaster.com/press', user_id: 1}
 Post.create({
     title: req.body.title,
@@ -78,17 +79,20 @@ Post.create({
     console.log(err);
     res.status(500).json(err);
     });
+  }
 });
 
 // PUT /api/posts/upvote
 router.put('/upvote', (req, res) => {
+  if (req.session) {
   // custom static method created in models/Post.js
-  Post.upvote(req.body, { Vote })
+  Post.upvote({...req.body, user_id: req.session.user_id}, { Vote })
     .then(updatedPostData => res.json(updatedPostData))
     .catch(err => {
       console.log(err);
       res.status(400).json(err);
     });
+  }
 });
 
 router.put('/:id', (req, res) => {
